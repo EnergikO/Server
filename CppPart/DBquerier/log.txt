@@ -1,0 +1,11 @@
+Sending: "{"request_name":"db_connect","request_args":{"db_name":"pictures.db"}}"
+Success
+Received: "{}"
+
+Received: "{"request_name": "upload_picture", "request_args": {"filename": "neko.mp3", "size": 18336, "tags": "anime_booba booba anime neko"}}"
+Sending: "{"request_name":"db_add","request_args":{"db_name":"pictures.db","table":"pictures","values":"\"yhHHw5nX8Lo7fSuO\",0,\"neko.mp3\",18336,\"anime_booba booba anime neko\",1651943732","fields":"id, user_id, filename, size, tags, created_at"}}"
+Success
+Received: "{}"
+
+Sending: "{"status":"Success","id":"yhHHw5nX8Lo7fSuO"}"
+Success
