@@ -1,9 +1,11 @@
 import sqlite3
-import json
+from Json import Json
 
 
 class Worker:
     def __init__(self, db_name):
+        self.sqlite_connection = None
+        self.cursor = None
         self.db_name = db_name
 
         self.start()
@@ -11,33 +13,24 @@ class Worker:
     def __del__(self):
         self.stop()
 
-        del self.db_name
-        del self
-
-    def add(self, table_name: str, fields: str, values: str) -> json:
+    def add(self, table_name: str, fields: str, values: str) -> Json:
         sqlite_select_query = f"INSERT INTO {table_name} ({fields}) VALUES ({str(values)});"
         try:
             self.cursor.execute(sqlite_select_query)
 
-        except sqlite3.IntegrityError as err:
-            return json.dumps({"status": "Error", "message": str(err)}, separators=(',', ':'))
-
         except Exception as err:
-            return json.dumps({"status": "Error", "message": str(err)}, separators=(',', ':'))
+            return Json.json_from_dict({"status": "Error", "message": str(err)})
 
         self.save()
 
-        return json.dumps({})
+        return Json.json_from_dict(dict())
 
-    def execute(self, command: str) -> json:
-        self.cursor.execute(command)
-        return json.dumps({"data": self.cursor.fetchall()}, separators=(',', ':'))
+    def execute(self, command: str) -> Json:
+        return self.execute_and_send_message(command)
 
-    def get_fields_by(self, table_name: str, fields: str, filter_condition: str) -> json:
+    def get_fields_by(self, table_name: str, fields: str, filter_condition: str) -> Json:
         sqlite_select_query = f'SELECT {fields} FROM {table_name} WHERE {filter_condition};'
-        self.cursor.execute(sqlite_select_query)
-
-        return json.dumps({"data": self.cursor.fetchall()}, separators=(',', ':'))
+        return self.execute_and_send_message(sqlite_select_query)
 
     def start(self):
         self.sqlite_connection = sqlite3.connect(self.db_name)
@@ -49,3 +42,11 @@ class Worker:
 
     def save(self):
         self.sqlite_connection.commit()
+
+    def execute_and_send_message(self, command) -> Json:
+        try:
+            self.cursor.execute(command)
+            return Json.json_from_dict({"status": "Success", "data": self.cursor.fetchall()})
+
+        except Exception as err:
+            return Json.json_from_dict({"status": "Error", "message": err})
