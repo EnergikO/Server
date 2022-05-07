@@ -1,5 +1,4 @@
 import socket
-import json
 from datetime import datetime
 from Json import Json
 
@@ -36,10 +35,11 @@ class Server:
         self.connection.send(str("%08X" % len(message.encode('utf8'))).encode('utf8'))
         self.connection.send(message.encode('utf8'))
 
-    def send_error(self, error: str):
-        data = json.dumps({"status": "Error", "error": error}, separators=(',', ':')).encode('utf8')
+    def send_error(self, error: str) -> None:
+        data = Json.json_from_dict({"status": "Error", "error": error}).encode('utf8')
         self.connection.send(str("%08X" % len(data)).encode('utf8'))
         self.connection.send(data)
 
-    def take_message(self):
-        return self.connection.recv(int(self.connection.recv(8).decode('utf8'), base=16)).decode("utf8")
+    def take_message(self) -> dict:
+        length = int(self.connection.recv(8).decode('utf8'), base=16)
+        return Json.json_to_dict(self.connection.recv(length).decode("utf8"))

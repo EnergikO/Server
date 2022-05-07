@@ -20,14 +20,18 @@ class Client:
         print(f"Connect: {address}: {port}\ntime: {datetime.now()}")
 
     def disconnect(self):
-        self.socket.close()
-        print(f"Disconnect: {self.address}: {self.port}\ntime: {datetime.now()}\n--==--")
+        if self.address:
+            self.socket.close()
+            print(f"Disconnect: {self.address}: {self.port}\ntime: {datetime.now()}\n--==--")
+
+            self.address = None
+            self.port = None
 
     def send_request(self, message: Json) -> None:
         self.socket.send(str("%08X" % len(message.encode('utf8'))).encode('utf8'))
         self.socket.send(message.encode('utf8'))
 
-    def upload_picture(self, picture_filepath: str) -> Json:
+    def upload_picture(self, picture_filepath: str, tags: str = "") -> Json:
         if Path(picture_filepath).is_file():
             picture = open(picture_filepath, 'rb').read()
 
@@ -35,11 +39,17 @@ class Client:
                 "request_name": "upload_picture",
                 "request_args": {
                     "filename": Path(picture_filepath).name,
-                    "size": "%08X" % len(picture)
+                    "size": len(picture),
+                    "tags": tags,
                 }
             }))
 
+            print("[.] Sending Picture ...")
+            print("[+] Success!")
+
             self.socket.send(picture)
+
+            print("[.] Waiting for server ...")
 
             return Json.json_from_str(self.socket.recv(int(self.socket.recv(8).decode('utf8'), base=16)).decode("utf8"))
 
@@ -50,7 +60,7 @@ class Client:
         request = Json.json_from_dict({
             "request_name": "get_picture",
             "request_args": {
-                "id": picture_id
+                "id": picture_id,
             }
         })
 
@@ -63,7 +73,8 @@ class Client:
                 "picture": {
                     "size": response["size"],
                     "data": self.socket.recv(int(response["size"], base=16)),
-                    "filename": response["filename"]
+                    "filename": response["filename"],
+                    "tags": response["tags"],
                 }
             })
 

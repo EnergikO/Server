@@ -20,7 +20,7 @@ def main():
             if -1 < remaining_lifetime <= now() - timer_start:
                 break
 
-            data = json.loads(server.take_message())
+            data = server.take_message()
 
         except Exception as err:
 
@@ -87,8 +87,8 @@ def main():
             server.reconnect()
 
         except KeyError:
-            server.send_message(Json.json_from_str(f'There is no active connection to {data["request_args"]["db_name"]}, '
-                                f'please create one firstly.'))
+            server.send_message(Json.json_from_str(f'There is no active connection to {data["request_args"]["db_name"]}'
+                                f', please create one firstly.'))
 
         finally:
             print("Done.\n------")

@@ -1,5 +1,5 @@
 import sqlite3
-import json
+from Json import Json
 
 
 class Worker:
@@ -13,22 +13,22 @@ class Worker:
     def __del__(self):
         self.stop()
 
-    def add(self, table_name: str, fields: str, values: str) -> json:
+    def add(self, table_name: str, fields: str, values: str) -> Json:
         sqlite_select_query = f"INSERT INTO {table_name} ({fields}) VALUES ({str(values)});"
         try:
             self.cursor.execute(sqlite_select_query)
 
         except Exception as err:
-            return json.dumps({"status": "Error", "message": str(err)}, separators=(',', ':'))
+            return Json.json_from_dict({"status": "Error", "message": str(err)})
 
         self.save()
 
-        return json.dumps({})
+        return Json.json_from_dict(dict())
 
-    def execute(self, command: str) -> json:
+    def execute(self, command: str) -> Json:
         return self.execute_and_send_message(command)
 
-    def get_fields_by(self, table_name: str, fields: str, filter_condition: str) -> json:
+    def get_fields_by(self, table_name: str, fields: str, filter_condition: str) -> Json:
         sqlite_select_query = f'SELECT {fields} FROM {table_name} WHERE {filter_condition};'
         return self.execute_and_send_message(sqlite_select_query)
 
@@ -43,10 +43,10 @@ class Worker:
     def save(self):
         self.sqlite_connection.commit()
 
-    def execute_and_send_message(self, command):
+    def execute_and_send_message(self, command) -> Json:
         try:
             self.cursor.execute(command)
-            return json.dumps({"status": "Success", "data": self.cursor.fetchall()}, separators=(',', ':'))
+            return Json.json_from_dict({"status": "Success", "data": self.cursor.fetchall()})
 
         except Exception as err:
-            return json.dumps({"status": "Error", "message": err}, separators=(',', ':'))
+            return Json.json_from_dict({"status": "Error", "message": err})
